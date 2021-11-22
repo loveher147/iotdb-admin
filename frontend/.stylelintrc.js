@@ -26,6 +26,6 @@ module.exports = {
           'deep'
       ]
    }],
-   "font-family-no-missing-generic-family-keyword": "never",  
+   "font-family-no-missing-generic-family-keyword": null
   },
 };
