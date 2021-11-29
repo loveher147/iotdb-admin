@@ -76,7 +76,7 @@ public class IotDBController {
   @ApiOperation("Get IoTDB data statistics")
   public BaseVO<DataCountVO> getDataCount(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     DataCountVO dataCountVO = iotDBService.getDataCount(connection);
     return BaseVO.success("Get IoTDB data statistics successfully", dataCountVO);
@@ -86,7 +86,7 @@ public class IotDBController {
   @ApiOperation("Get IoTDB data model")
   public BaseVO<DataModelVO> getDataModel(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     DataModelVO dataModelVO = iotDBService.getDataModel(connection);
     return BaseVO.success("Get IoTDB data model successfully", dataModelVO);
@@ -96,7 +96,7 @@ public class IotDBController {
   @ApiOperation("Get information of the storage group list")
   public BaseVO<List<GroupInfoVO>> getAllStorageGroupsInfo(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<String> groupNames = iotDBService.getAllStorageGroups(connection);
     List<GroupInfoVO> groupInfoList = new ArrayList<>();
@@ -120,7 +120,7 @@ public class IotDBController {
   @ApiOperation("Get storage group list")
   public BaseVO<List<StorageGroupVO>> getAllStorageGroups(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<StorageGroupVO> storageGroupVOList = new ArrayList<>();
     List<String> groupNames = iotDBService.getAllStorageGroups(connection);
@@ -142,7 +142,7 @@ public class IotDBController {
   @ApiOperation("Get storage group list(Node tree structure)")
   public BaseVO<List<NodeTreeVO>> getGroupsNodeTree(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<NodeTreeVO> groupsNodeTree = iotDBService.getGroupsNodeTree(connection);
     return BaseVO.success("Get successfully", groupsNodeTree);
@@ -157,7 +157,7 @@ public class IotDBController {
       throws BaseException {
     String groupName = groupDTO.getGroupName();
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     Long ttl = groupDTO.getTtl();
     String ttlUnit = groupDTO.getTtlUnit();
@@ -199,7 +199,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     String host = connection.getHost();
     iotDBService.deleteStorageGroup(connection, groupName);
@@ -217,7 +217,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     String host = connection.getHost();
     StorageGroup group = groupService.getGroupInfo(host, groupName);
@@ -258,7 +258,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     CountDTO countDTO =
         iotDBService.getDevicesByGroup(connection, groupName, pageSize, pageNum, keyword);
@@ -298,7 +298,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     final List<String> devices = iotDBService.getDevices(connection, groupName);
     return BaseVO.success("Get successfully", devices);
@@ -312,7 +312,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<NodeTreeVO> deviceList = iotDBService.getDeviceNodeTree(connection, groupName);
     return BaseVO.success("Get successfully", deviceList);
@@ -326,7 +326,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     NodeTreeVO deviceList = iotDBService.getDeviceList(connection, groupName);
     return BaseVO.success("Get successfully", deviceList);
@@ -341,7 +341,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<String> deviceParents = iotDBService.getDeviceParents(connection, groupName, deviceName);
     return BaseVO.success("Get successfully", deviceParents);
@@ -356,7 +356,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     Boolean isExist = iotDBService.deviceExist(connection, groupName, deviceName);
     return BaseVO.success("Get successfully", isExist);
@@ -373,7 +373,7 @@ public class IotDBController {
     for (DeviceDTO deviceDTO : deviceInfoDTO.getDeviceDTOList()) {
       checkParameter(groupName, deviceInfoDTO.getDeviceName(), deviceDTO.getTimeseries());
     }
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.upsertMeasurements(connection, deviceInfoDTO);
     String host = connection.getHost();
@@ -396,7 +396,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     String host = connection.getHost();
     List<String> deletedTimeseriesList =
@@ -417,7 +417,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     String host = connection.getHost();
     DeviceVO deviceVO = deviceService.getDevice(host, deviceName);
@@ -436,7 +436,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     CountDTO countDTO =
         iotDBService.getMeasurementsByDevice(connection, deviceName, pageSize, pageNum, keyword);
@@ -508,7 +508,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName, timeseriesName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     RecordVO recordVO = iotDBService.getRecords(connection, deviceName, timeseriesName, dataType);
     return BaseVO.success("Get successfully", recordVO);
@@ -523,7 +523,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<String> timeseries = iotDBService.getTimeseries(connection, deviceName);
     return BaseVO.success("Get successfully", timeseries);
@@ -539,7 +539,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName, timeseriesName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.deleteTimeseries(connection, timeseriesName);
     String host = connection.getHost();
@@ -559,7 +559,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     DataVO dataVO =
         iotDBService.getDataByDevice(connection, deviceName, pageSize, pageNum, dataQueryDTO);
@@ -581,7 +581,7 @@ public class IotDBController {
     for (String measurement : dataUpdateDTO.getMeasurementList()) {
       checkParameter(groupName, deviceName, measurement);
     }
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.updateDataByDevice(connection, deviceName, dataUpdateDTO);
     return BaseVO.success("Upsert successfully", null);
@@ -599,7 +599,7 @@ public class IotDBController {
     for (String measurement : dataDeleteDTO.getMeasurementList()) {
       checkParameter(groupName, deviceName, measurement);
     }
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.deleteDataByDevice(connection, deviceName, dataDeleteDTO);
     return BaseVO.success("Delete successfully", null);
@@ -615,7 +615,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkParameter(groupName, deviceName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.randomImport(connection, deviceName, randomImportDTO);
     return BaseVO.success("Randomly import successfully", null);
@@ -637,7 +637,7 @@ public class IotDBController {
     for (String measurement : measurementList) {
       checkParameter(groupName, deviceName, measurement);
     }
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     String host = connection.getHost();
     Integer port = connection.getPort();
@@ -662,7 +662,7 @@ public class IotDBController {
       @RequestBody IotDBUser iotDBUser,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     if (iotDBUser.getUserName().matches("^\\d+$")) {
       throw new BaseException(ErrorCode.NOT_SUPPORT_ALL_DIGIT, ErrorCode.NOT_SUPPORT_ALL_DIGIT_MSG);
     }
@@ -679,7 +679,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.deleteIotDBUser(connection, userName);
     return BaseVO.success("Delete successfully", null);
@@ -689,7 +689,7 @@ public class IotDBController {
   @ApiOperation("Get IoTDB users")
   public BaseVO<List<String>> getIotDBUserList(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<String> users = iotDBService.getIotDBUserList(connection);
     String username = connection.getUsername();
@@ -718,7 +718,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     UserRolesVO userRolesVO = iotDBService.getRolesOfUser(connection, userName);
     return BaseVO.success("Get successfully", userRolesVO);
@@ -731,7 +731,7 @@ public class IotDBController {
       @RequestBody IotDBUser iotDBUser,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.updatePwd(connection, iotDBUser);
     return BaseVO.success("Alter password successfully", null);
@@ -744,7 +744,7 @@ public class IotDBController {
       @RequestBody IotDBRole iotDBRole,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     if (iotDBRole.getRoleName().matches("^\\d+$")) {
       throw new BaseException(ErrorCode.NOT_SUPPORT_ALL_DIGIT, ErrorCode.NOT_SUPPORT_ALL_DIGIT_MSG);
     }
@@ -764,7 +764,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(roleName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.deleteIotDBRole(connection, roleName);
     roleService.deleteRoleInfo(connection.getHost(), connection.getPort(), roleName);
@@ -775,7 +775,7 @@ public class IotDBController {
   @ApiOperation("Get all roles)")
   public BaseVO<List<String>> getIotDBRoleList(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<String> roles = iotDBService.getIotDBRoleList(connection);
     return BaseVO.success("Get successfully", roles);
@@ -789,7 +789,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(roleName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     RoleVO roleVO = iotDBService.getIotDBRoleInfo(connection, roleName);
     Role roleInfo = roleService.getRoleInfo(connection.getHost(), connection.getPort(), roleName);
@@ -809,7 +809,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.userGrant(connection, userName, userGrantDTO);
     return BaseVO.success("Upsert successfully", null);
@@ -824,7 +824,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(roleName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.roleGrant(connection, roleName, roleGrantDTO);
     return BaseVO.success("Upsert successfully", null);
@@ -838,7 +838,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     Set<String> userAuthorityPrivilege =
         iotDBService.getUserAuthorityPrivilege(connection, userName);
@@ -853,7 +853,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     Set<String> userAuthorityPrivilege =
         iotDBService.getAllAuthorityPrivilege(connection, userName);
@@ -868,7 +868,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(roleName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     Set<String> roleAuthorityPrivilege =
         iotDBService.getRoleAuthorityPrivilege(connection, roleName);
@@ -884,7 +884,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.upsertAuthorityPrivilege(connection, userName, authorityPrivilegeDTO, "user");
     return BaseVO.success("Upsert successfully", null);
@@ -899,7 +899,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(roleName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     iotDBService.upsertAuthorityPrivilege(connection, roleName, authorityPrivilegeDTO, "role");
     return BaseVO.success("Upsert successfully", null);
@@ -913,7 +913,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(userName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<DataPrivilegeVO> dataPrivilegeList =
         iotDBService.getUserDataPrivilege(connection, userName);
@@ -928,7 +928,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     checkName(roleName);
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     List<DataPrivilegeVO> dataPrivilegeList =
         iotDBService.getRoleDataPrivilege(connection, roleName);
@@ -943,7 +943,7 @@ public class IotDBController {
       @RequestBody PrivilegeInfoDTO privilegeInfoDTO,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     checkName(userName);
     checkPrivilegeInfoDTO(privilegeInfoDTO);
     Connection connection = connectionService.getById(serverId);
@@ -959,7 +959,7 @@ public class IotDBController {
       @RequestBody PrivilegeInfoDTO privilegeInfoDTO,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     checkName(roleName);
     checkPrivilegeInfoDTO(privilegeInfoDTO);
     Connection connection = connectionService.getById(serverId);
@@ -1114,7 +1114,7 @@ public class IotDBController {
     }
   }
 
-  private void check(HttpServletRequest request, Integer serverId) throws BaseException {
+  private void checkUser(HttpServletRequest request, Integer serverId) throws BaseException {
     Integer userId = AuthenticationUtils.getUserId(request);
     connectionService.check(serverId, userId);
   }

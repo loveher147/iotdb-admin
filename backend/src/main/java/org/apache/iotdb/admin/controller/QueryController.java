@@ -63,7 +63,7 @@ public class QueryController {
     if (sqls == null || sqls.size() == 0) {
       throw new BaseException(ErrorCode.NO_SQL, ErrorCode.NO_SQL_MSG);
     }
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
     Long timestamp = searchDTO.getTimestamp();
     List<SqlResultVO> sqlResultVOList = iotDBService.queryAll(connection, sqls, timestamp);
@@ -81,7 +81,7 @@ public class QueryController {
     if (sqls == null || "".equals(sqls)) {
       throw new BaseException(ErrorCode.NO_SQL, ErrorCode.NO_SQL_MSG);
     }
-    check(request, serverId);
+    checkUser(request, serverId);
     if (query.getId() != null) {
       queryService.update(serverId, query);
       return BaseVO.success("Update successful", query.getId());
@@ -94,7 +94,7 @@ public class QueryController {
   @ApiOperation("Get query scripts")
   public BaseVO<List<QueryVO>> getQueries(
       @PathVariable("serverId") Integer serverId, HttpServletRequest request) throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     List<QueryVO> queryVOList = queryService.getQueryList(serverId);
     return BaseVO.success("Get successful", queryVOList);
   }
@@ -106,7 +106,7 @@ public class QueryController {
       @PathVariable("queryId") Integer queryId,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     queryService.deleteQuery(queryId);
     return BaseVO.success("Delete successfully", null);
   }
@@ -118,7 +118,7 @@ public class QueryController {
       @PathVariable("queryId") Integer queryId,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Query query = queryService.getQuery(queryId);
     return BaseVO.success("Get successfully", query);
   }
@@ -130,12 +130,12 @@ public class QueryController {
       @RequestParam("timestamp") Long timestamp,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     iotDBService.stopQuery(serverId, timestamp);
     return BaseVO.success("Stop the query successful", null);
   }
 
-  public void check(HttpServletRequest request, Integer serverId) throws BaseException {
+  public void checkUser(HttpServletRequest request, Integer serverId) throws BaseException {
     Integer userId = AuthenticationUtils.getUserId(request);
     connectionService.check(serverId, userId);
   }

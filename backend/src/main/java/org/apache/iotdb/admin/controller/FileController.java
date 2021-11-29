@@ -61,7 +61,7 @@ public class FileController {
       @PathVariable("serverId") Integer serverId,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
       throw new BaseException(ErrorCode.FILE_NAME_ILLEGAL, ErrorCode.FILE_NAME_ILLEGAL_MSG);
     }
@@ -86,7 +86,7 @@ public class FileController {
       @RequestParam("sql") String sql,
       HttpServletRequest request)
       throws BaseException {
-    check(request, serverId);
+    checkUser(request, serverId);
     Connection connection = connectionService.getById(serverId);
 
     String host = connection.getHost();
@@ -124,7 +124,7 @@ public class FileController {
         .body(resource);
   }
 
-  private void check(HttpServletRequest request, Integer serverId) throws BaseException {
+  private void checkUser(HttpServletRequest request, Integer serverId) throws BaseException {
     Integer userId = AuthenticationUtils.getUserId(request);
     connectionService.check(serverId, userId);
   }
