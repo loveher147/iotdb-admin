@@ -64,6 +64,7 @@ public class UserController {
       HttpServletResponse response)
       throws BaseException {
     if (name == null || password == null || name.length() < 4 || password.length() < 4) {
+      logger.error(ErrorCode.WRONG_USER_PARAM_MSG);
       throw new BaseException(ErrorCode.WRONG_USER_PARAM, ErrorCode.WRONG_USER_PARAM_MSG);
     }
     User user = userService.login(name, password);
@@ -135,7 +136,7 @@ public class UserController {
       logger.info(user.getName() + "login successfully");
       return token;
     } catch (Exception e) {
-      logger.info(e.getMessage());
+      logger.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_TOKEN_FAIL, ErrorCode.GET_TOKEN_FAIL_MSG);
     }
   }

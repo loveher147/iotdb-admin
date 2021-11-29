@@ -32,6 +32,7 @@ import org.apache.iotdb.session.Session;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 
+@Slf4j
 @RestController
 @Api(value = "Connection related")
 public class ConnectionController {
@@ -97,6 +99,7 @@ public class ConnectionController {
       socket = new Socket();
       socket.connect(new InetSocketAddress(conn.getHost(), conn.getPort()), 5000);
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.TEST_CONN_FAIL, ErrorCode.TEST_CONN_FAIL_MSG);
     } finally {
       try {
@@ -104,6 +107,7 @@ public class ConnectionController {
           socket.close();
         }
       } catch (Exception e) {
+        log.error(e.getMessage());
         throw new BaseException(ErrorCode.TEST_CONN_FAIL, ErrorCode.TEST_CONN_FAIL_MSG);
       }
     }
@@ -112,6 +116,7 @@ public class ConnectionController {
       session = new Session(conn.getHost(), conn.getPort(), conn.getUsername(), conn.getPassword());
       session.open();
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.TEST_CONN_FAIL_PWD, ErrorCode.TEST_CONN_FAIL_PWD_MSG);
     } finally {
       try {
@@ -119,6 +124,7 @@ public class ConnectionController {
           session.close();
         }
       } catch (Exception e) {
+        log.error(e.getMessage());
         throw new BaseException(ErrorCode.TEST_CONN_FAIL_PWD, ErrorCode.TEST_CONN_FAIL_PWD_MSG);
       }
     }

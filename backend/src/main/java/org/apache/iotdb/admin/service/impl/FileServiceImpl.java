@@ -24,6 +24,7 @@ import org.apache.iotdb.admin.common.exception.ErrorCode;
 import org.apache.iotdb.admin.config.FileProperties;
 import org.apache.iotdb.admin.service.FileService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -37,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+@Slf4j
 @Service
 public class FileServiceImpl implements FileService {
 
@@ -55,6 +57,7 @@ public class FileServiceImpl implements FileService {
       String fileFullName = targetLocation.toString();
       return fileFullName;
     } catch (IOException ex) {
+      log.error(ex.getMessage());
       throw new BaseException(ErrorCode.UPLOAD_FILE_FAIL, ErrorCode.UPLOAD_FILE_FAIL_MSG);
     }
   }
@@ -68,9 +71,11 @@ public class FileServiceImpl implements FileService {
       if (resource.exists()) {
         return resource;
       } else {
+        log.error(ErrorCode.FILE_NOT_FOUND_MSG);
         throw new BaseException(ErrorCode.FILE_NOT_FOUND, ErrorCode.FILE_NOT_FOUND_MSG);
       }
     } catch (MalformedURLException ex) {
+      log.error(ErrorCode.FILE_NOT_FOUND_MSG);
       throw new BaseException(ErrorCode.FILE_NOT_FOUND, ErrorCode.FILE_NOT_FOUND_MSG);
     }
   }

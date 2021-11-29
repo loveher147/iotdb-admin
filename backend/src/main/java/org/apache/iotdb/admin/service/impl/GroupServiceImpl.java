@@ -29,12 +29,14 @@ import org.apache.iotdb.admin.service.GroupService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class GroupServiceImpl extends ServiceImpl<GroupMapper, StorageGroup>
     implements GroupService {
@@ -64,6 +66,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, StorageGroup>
       storageGroup.setDescription(description);
       int flag = groupMapper.updateById(storageGroup);
       if (flag <= 0) {
+        log.error(ErrorCode.INSERT_GROUP_INFO_FAIL_MSG);
         throw new BaseException(
             ErrorCode.INSERT_GROUP_INFO_FAIL, ErrorCode.INSERT_GROUP_INFO_FAIL_MSG);
       }
@@ -78,6 +81,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, StorageGroup>
     group.setHost(host);
     int flag = groupMapper.insert(group);
     if (flag <= 0) {
+      log.error(ErrorCode.INSERT_GROUP_INFO_FAIL_MSG);
       throw new BaseException(
           ErrorCode.INSERT_GROUP_INFO_FAIL, ErrorCode.INSERT_GROUP_INFO_FAIL_MSG);
     }
@@ -103,6 +107,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, StorageGroup>
     try {
       groupMapper.delete(queryWrapper);
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(
           ErrorCode.DELETE_GROUP_INFO_FAIL, ErrorCode.DELETE_GROUP_INFO_FAIL_MSG);
     }
@@ -127,11 +132,13 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, StorageGroup>
       storageGroup.setDescription(groupDTO.getDescription());
       int flag = groupMapper.updateById(storageGroup);
       if (flag <= 0) {
+        log.error(ErrorCode.UPDATE_GROUP_INFO_FAIL_MSG);
         throw new BaseException(
             ErrorCode.UPDATE_GROUP_INFO_FAIL, ErrorCode.UPDATE_GROUP_INFO_FAIL_MSG);
       }
       return;
     }
+    log.error(ErrorCode.NO_GROUP_INFO_MSG);
     throw new BaseException(ErrorCode.NO_GROUP_INFO, ErrorCode.NO_GROUP_INFO_MSG);
   }
 

@@ -34,6 +34,7 @@ import org.apache.iotdb.admin.service.QueryService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @Api(value = "Query related")
 @RequestMapping("/servers/{serverId}")
@@ -61,6 +63,7 @@ public class QueryController {
       throws BaseException {
     List<String> sqls = searchDTO.getSqls();
     if (sqls == null || sqls.size() == 0) {
+      log.error(ErrorCode.NO_SQL_MSG);
       throw new BaseException(ErrorCode.NO_SQL, ErrorCode.NO_SQL_MSG);
     }
     checkUser(request, serverId);
@@ -79,6 +82,7 @@ public class QueryController {
       throws BaseException {
     String sqls = query.getSqls();
     if (sqls == null || "".equals(sqls)) {
+      log.error(ErrorCode.NO_SQL_MSG);
       throw new BaseException(ErrorCode.NO_SQL, ErrorCode.NO_SQL_MSG);
     }
     checkUser(request, serverId);

@@ -179,12 +179,14 @@ public class IotDBController {
         Long times = switchTime(ttlUnit);
         iotDBService.saveGroupTtl(connection, groupName, ttl * times);
       } else {
+        log.error(ErrorCode.TTL_WRONG_MSG);
         throw new BaseException(ErrorCode.TTL_WRONG, ErrorCode.TTL_WRONG_MSG);
       }
     } else {
       if (ttl == null && ttlUnit == null) {
         iotDBService.cancelGroupTtl(connection, groupName);
       } else {
+        log.error(ErrorCode.WRONG_DB_PARAM_MSG);
         throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
       }
     }
@@ -576,6 +578,7 @@ public class IotDBController {
       HttpServletRequest request)
       throws BaseException {
     if (dataUpdateDTO.getValueList().size() != dataUpdateDTO.getMeasurementList().size()) {
+      log.error(ErrorCode.WRONG_DB_PARAM_MSG);
       throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
     }
     for (String measurement : dataUpdateDTO.getMeasurementList()) {
@@ -632,6 +635,7 @@ public class IotDBController {
       throws BaseException {
     List<String> measurementList = dataQueryDTO.getMeasurementList();
     if (measurementList == null || measurementList.size() == 0) {
+      log.error(ErrorCode.WRONG_DB_PARAM_MSG);
       throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
     }
     for (String measurement : measurementList) {
@@ -664,6 +668,7 @@ public class IotDBController {
       throws BaseException {
     checkUser(request, serverId);
     if (iotDBUser.getUserName().matches("^\\d+$")) {
+      log.error(ErrorCode.NOT_SUPPORT_ALL_DIGIT_MSG);
       throw new BaseException(ErrorCode.NOT_SUPPORT_ALL_DIGIT, ErrorCode.NOT_SUPPORT_ALL_DIGIT_MSG);
     }
     Connection connection = connectionService.getById(serverId);
@@ -746,6 +751,7 @@ public class IotDBController {
       throws BaseException {
     checkUser(request, serverId);
     if (iotDBRole.getRoleName().matches("^\\d+$")) {
+      log.error(ErrorCode.NOT_SUPPORT_ALL_DIGIT_MSG);
       throw new BaseException(ErrorCode.NOT_SUPPORT_ALL_DIGIT, ErrorCode.NOT_SUPPORT_ALL_DIGIT_MSG);
     }
     Connection connection = connectionService.getById(serverId);
@@ -1124,6 +1130,7 @@ public class IotDBController {
     if (!groupName.matches("^root\\.[^ ]+$")
         || checkName.contains(".root.")
         || checkName.matches("^[^ ]*\\.root$")) {
+      log.error(ErrorCode.NO_SUP_CONTAIN_ROOT_MSG);
       throw new BaseException(ErrorCode.NO_SUP_CONTAIN_ROOT, ErrorCode.NO_SUP_CONTAIN_ROOT_MSG);
     }
     if (checkName.contains(".as.")
@@ -1132,6 +1139,7 @@ public class IotDBController {
         || checkName.matches("^[^ ]*\\.as$")
         || checkName.matches("^[^ ]*\\.null$")
         || checkName.matches("^[^ ]*\\.like$")) {
+      log.error(ErrorCode.NO_SUP_CONTAIN_WORD_MSG);
       throw new BaseException(ErrorCode.NO_SUP_CONTAIN_WORD, ErrorCode.NO_SUP_CONTAIN_WORD_MSG);
     }
   }
@@ -1140,6 +1148,7 @@ public class IotDBController {
     checkParameter(deviceName);
     checkParameter(groupName);
     if (!deviceName.startsWith(groupName)) {
+      log.error(ErrorCode.WRONG_DB_PARAM_MSG);
       throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
     }
   }
@@ -1149,6 +1158,7 @@ public class IotDBController {
     checkParameter(deviceName, timeseriesName);
     checkParameter(groupName, deviceName);
     if (StringUtils.removeStart(timeseriesName, deviceName + ".").contains(".")) {
+      log.error(ErrorCode.MEASUREMENTS_NAME_CONTAIN_DOT_MSG);
       throw new BaseException(
           ErrorCode.MEASUREMENTS_NAME_CONTAIN_DOT, ErrorCode.MEASUREMENTS_NAME_CONTAIN_DOT_MSG);
     }
@@ -1156,6 +1166,7 @@ public class IotDBController {
 
   private void checkName(String name) throws BaseException {
     if (name == null || !name.matches("^[^ ]{4,}$")) {
+      log.error(ErrorCode.WRONG_DB_PARAM_MSG);
       throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
     }
   }
@@ -1188,6 +1199,7 @@ public class IotDBController {
         time = 12 * 30 * 24 * 60 * 60 * 1000L;
         break;
       default:
+        log.error(ErrorCode.WRONG_DB_PARAM_MSG);
         throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
     }
     return time;
@@ -1230,6 +1242,7 @@ public class IotDBController {
 
   private void checkTtl(Long ttl, String unit) throws BaseException {
     if (Long.MAX_VALUE / switchTime(unit) < ttl) {
+      log.error(ErrorCode.TTL_OVER_MSG);
       throw new BaseException(ErrorCode.TTL_OVER, ErrorCode.TTL_OVER_MSG);
     }
   }

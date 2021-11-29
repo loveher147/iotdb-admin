@@ -30,6 +30,7 @@ import org.apache.iotdb.admin.service.DeviceService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> implements DeviceService {
 
@@ -64,6 +66,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     try {
       deviceMapper.delete(queryWrapper);
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(
           ErrorCode.DELETE_DEVICE_INFO_FAIL, ErrorCode.DELETE_DEVICE_INFO_FAIL_MSG);
     }
@@ -77,6 +80,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     try {
       deviceMapper.delete(queryWrapper);
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(
           ErrorCode.DELETE_DEVICE_INFO_FAIL, ErrorCode.DELETE_DEVICE_INFO_FAIL_MSG);
     }
@@ -98,6 +102,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
       device.setDescription(deviceInfoDTO.getDescription());
       int flag = deviceMapper.insert(device);
       if (flag <= 0) {
+        log.error(ErrorCode.SET_DEVICE_INFO_FAIL_MSG);
         throw new BaseException(ErrorCode.SET_DEVICE_INFO_FAIL, ErrorCode.SET_DEVICE_INFO_FAIL_MSG);
       }
       return;
@@ -105,6 +110,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     existDevice.setDescription(deviceInfoDTO.getDescription());
     int flag = deviceMapper.updateById(existDevice);
     if (flag <= 0) {
+      log.error(ErrorCode.SET_DEVICE_INFO_FAIL_MSG);
       throw new BaseException(ErrorCode.SET_DEVICE_INFO_FAIL, ErrorCode.SET_DEVICE_INFO_FAIL_MSG);
     }
   }
@@ -141,6 +147,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
       deviceMapper.updateById(existDevice);
       return;
     }
+    log.error(ErrorCode.NO_DEVICE_INFO_MSG);
     throw new BaseException(ErrorCode.NO_DEVICE_INFO, ErrorCode.NO_DEVICE_INFO_MSG);
   }
 }

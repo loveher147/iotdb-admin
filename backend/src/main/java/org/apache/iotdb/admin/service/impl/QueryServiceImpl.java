@@ -28,6 +28,7 @@ import org.apache.iotdb.admin.service.QueryService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class QueryServiceImpl extends ServiceImpl<QueryMapper, Query> implements QueryService {
 
@@ -54,6 +56,7 @@ public class QueryServiceImpl extends ServiceImpl<QueryMapper, Query> implements
       queryMapper.insert(newQuery);
       return queryMapper.selectOne(queryWrapper).getId();
     }
+    log.error(ErrorCode.QUERY_EXIST_MSG);
     throw new BaseException(ErrorCode.QUERY_EXIST, ErrorCode.QUERY_EXIST_MSG);
   }
 
@@ -68,6 +71,7 @@ public class QueryServiceImpl extends ServiceImpl<QueryMapper, Query> implements
       queryMapper.updateById(query);
       return;
     }
+    log.error(ErrorCode.QUERY_EXIST_MSG);
     throw new BaseException(ErrorCode.QUERY_EXIST, ErrorCode.QUERY_EXIST_MSG);
   }
 
@@ -91,6 +95,7 @@ public class QueryServiceImpl extends ServiceImpl<QueryMapper, Query> implements
     queryWrapper.eq("id", queryId);
     int flag = queryMapper.delete(queryWrapper);
     if (flag <= 0) {
+      log.error(ErrorCode.QUERY_NOT_EXIST_MSG);
       throw new BaseException(ErrorCode.QUERY_NOT_EXIST, ErrorCode.QUERY_NOT_EXIST_MSG);
     }
   }
@@ -101,6 +106,7 @@ public class QueryServiceImpl extends ServiceImpl<QueryMapper, Query> implements
     queryWrapper.eq("id", queryId);
     Query query = queryMapper.selectOne(queryWrapper);
     if (query == null) {
+      log.error(ErrorCode.QUERY_NOT_EXIST_MSG);
       throw new BaseException(ErrorCode.QUERY_NOT_EXIST, ErrorCode.QUERY_NOT_EXIST_MSG);
     }
     return query;

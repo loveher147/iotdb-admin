@@ -59,6 +59,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         flag = roleMapper.updateById(role);
       }
       if (flag == 0) {
+        log.error(ErrorCode.UPSERT_ROLE_INFO_FAIL_MSG);
         throw new BaseException(
             ErrorCode.UPSERT_ROLE_INFO_FAIL, ErrorCode.UPSERT_ROLE_INFO_FAIL_MSG);
       }

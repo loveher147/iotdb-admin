@@ -27,10 +27,12 @@ import org.apache.iotdb.admin.service.UserService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
@@ -45,10 +47,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     User user = userMapper.selectOne(queryWrapper);
     if (user != null) {
       if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
+        log.error(ErrorCode.LOGIN_FAIL_PWD_MSG);
         throw new BaseException(ErrorCode.LOGIN_FAIL_PWD, ErrorCode.LOGIN_FAIL_PWD_MSG);
       }
       return user;
     } else {
+      log.error(ErrorCode.LOGIN_FAIL_USER_MSG);
       throw new BaseException(ErrorCode.LOGIN_FAIL_USER, ErrorCode.LOGIN_FAIL_USER_MSG);
     }
   }
@@ -63,9 +67,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
       try {
         userMapper.insert(user);
       } catch (Exception e) {
+        log.error(e.getMessage());
         throw new BaseException(ErrorCode.INSERT_USER_FAIL, ErrorCode.INSERT_USER_FAIL_MSG);
       }
     } else {
+      log.error(ErrorCode.USER_EXIST_MSG);
       throw new BaseException(ErrorCode.USER_EXIST, ErrorCode.USER_EXIST_MSG);
     }
   }
@@ -75,6 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     try {
       userMapper.deleteById(userId);
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.DELETE_USER_FAIL, ErrorCode.DELETE_USER_FAIL_MSG);
     }
   }

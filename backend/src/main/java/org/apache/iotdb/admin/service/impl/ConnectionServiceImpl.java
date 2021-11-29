@@ -28,12 +28,14 @@ import org.apache.iotdb.admin.service.ConnectionService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class ConnectionServiceImpl extends ServiceImpl<ConnectionMapper, Connection>
     implements ConnectionService {
@@ -69,10 +71,12 @@ public class ConnectionServiceImpl extends ServiceImpl<ConnectionMapper, Connect
     Connection existConnection = connectionMapper.selectOne(queryWrapper);
     // Alias are unique
     if (existConnection != null) {
+      log.error(ErrorCode.ALIAS_REPEAT_MSG);
       throw new BaseException(ErrorCode.ALIAS_REPEAT, ErrorCode.ALIAS_REPEAT_MSG);
     }
     int flag = connectionMapper.insert(connection);
     if (flag <= 0) {
+      log.error(ErrorCode.INSERT_CONN_FAIL_MSG);
       throw new BaseException(ErrorCode.INSERT_CONN_FAIL, ErrorCode.INSERT_CONN_FAIL_MSG);
     }
   }
@@ -82,6 +86,7 @@ public class ConnectionServiceImpl extends ServiceImpl<ConnectionMapper, Connect
     try {
       connectionMapper.deleteById(serverId);
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.DELETE_CONN_FAIL, ErrorCode.DELETE_CONN_FAIL_MSG);
     }
   }
@@ -93,10 +98,12 @@ public class ConnectionServiceImpl extends ServiceImpl<ConnectionMapper, Connect
     try {
       Connection connection = connectionMapper.selectOne(queryWrapper);
       if (connection == null) {
+        log.error(ErrorCode.NO_CONN_MSG);
         throw new BaseException(ErrorCode.NO_CONN, ErrorCode.NO_CONN_MSG);
       }
       return connection;
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_CONN_FAIL, ErrorCode.GET_CONN_FAIL_MSG);
     }
   }
@@ -108,6 +115,7 @@ public class ConnectionServiceImpl extends ServiceImpl<ConnectionMapper, Connect
     queryWrapper.eq("user_id", userId);
     Connection connection = connectionMapper.selectOne(queryWrapper);
     if (connection == null) {
+      log.error(ErrorCode.CHECK_FAIL_MSG);
       throw new BaseException(ErrorCode.CHECK_FAIL, ErrorCode.CHECK_FAIL_MSG);
     }
   }
@@ -122,10 +130,12 @@ public class ConnectionServiceImpl extends ServiceImpl<ConnectionMapper, Connect
     Connection existConnection = connectionMapper.selectOne(queryWrapper);
     // Alias are unique
     if (existConnection != null && !connection.getId().equals(existConnection.getId())) {
+      log.error(ErrorCode.ALIAS_REPEAT_MSG);
       throw new BaseException(ErrorCode.ALIAS_REPEAT, ErrorCode.ALIAS_REPEAT_MSG);
     }
     int flag = connectionMapper.updateById(connection);
     if (flag <= 0) {
+      log.error(ErrorCode.INSERT_CONN_FAIL_MSG);
       throw new BaseException(ErrorCode.INSERT_CONN_FAIL, ErrorCode.INSERT_CONN_FAIL_MSG);
     }
   }

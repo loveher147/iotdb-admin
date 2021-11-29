@@ -114,6 +114,7 @@ public class IotDBServiceImpl implements IotDBService {
       dataCountVO.setDataCount(dataCount);
       return dataCountVO;
     } catch (NumberFormatException e) {
+      logger.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_DATA_COUNT_FAIL, ErrorCode.GET_DATA_COUNT_FAIL_MSG);
     } finally {
       closeSessionPool(sessionPool);
@@ -316,7 +317,7 @@ public class IotDBServiceImpl implements IotDBService {
     return groupNodeVOList;
   }
 
-  //assemble tree depth-first recursively.
+  // assemble tree depth-first recursively.
   private void assembleNodeTree(
       NodeTreeVO node, String prefixPath, String type, SessionPool sessionPool)
       throws BaseException {
@@ -356,6 +357,7 @@ public class IotDBServiceImpl implements IotDBService {
     try {
       sessionPool.setStorageGroup(groupName);
     } catch (StatementExecutionException e) {
+      logger.error(e.getMessage());
       if (e.getStatusCode() == 602) {
         throw new BaseException(ErrorCode.NO_PRI_SET_GROUP, ErrorCode.NO_PRI_SET_GROUP_MSG);
       }
@@ -364,7 +366,6 @@ public class IotDBServiceImpl implements IotDBService {
       if (e.getStatusCode() == 300) {
         throw new BaseException(ErrorCode.SET_GROUP_FAIL, ErrorCode.SET_GROUP_FAIL_MSG);
       }
-      logger.error(e.getMessage());
     } catch (IoTDBConnectionException e) {
       logger.error(e.getMessage());
       throw new BaseException(ErrorCode.SET_GROUP_FAIL, ErrorCode.SET_GROUP_FAIL_MSG);
@@ -558,6 +559,7 @@ public class IotDBServiceImpl implements IotDBService {
       roleVO.setUserList(users);
       return roleVO;
     } catch (BaseException e) {
+      logger.error(e.getMessage());
       throw new BaseException(ErrorCode.ROLE_GET_USERS_FAIL, ErrorCode.ROLE_GET_USERS_FAIL_MSG);
     } finally {
       closeSessionPool(sessionPool);
@@ -671,6 +673,7 @@ public class IotDBServiceImpl implements IotDBService {
       userRolesVO.setRoleList(roleList);
       return userRolesVO;
     } catch (BaseException e) {
+      logger.error(e.getMessage());
       if (e.getErrorCode().equals(ErrorCode.NO_PRI_DO_THIS)) {
         throw new BaseException(ErrorCode.NO_PRI_LIST_ROLE, ErrorCode.NO_PRI_LIST_ROLE_MSG);
       } else {
@@ -940,6 +943,7 @@ public class IotDBServiceImpl implements IotDBService {
   private void checkAuthorityPrivilege(List<String> privileges) throws BaseException {
     for (String privilege : privileges) {
       if (!AUTHORITY_PRIVILEGES.contains(privilege)) {
+        logger.error(ErrorCode.WRONG_DB_PARAM_MSG);
         throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
       }
     }
@@ -1170,6 +1174,7 @@ public class IotDBServiceImpl implements IotDBService {
         return supPath;
       }
     }
+    logger.error(ErrorCode.GET_DATA_PRIVILEGE_FAIL_MSG);
     throw new BaseException(
         ErrorCode.GET_DATA_PRIVILEGE_FAIL, ErrorCode.GET_DATA_PRIVILEGE_FAIL_MSG);
   }
@@ -1204,8 +1209,10 @@ public class IotDBServiceImpl implements IotDBService {
     try {
       sessionPool.deleteTimeseries(timeseriesName);
     } catch (IoTDBConnectionException e) {
+      logger.error(e.getMessage());
       throw new BaseException(ErrorCode.DELETE_TS_FAIL, ErrorCode.DELETE_TS_FAIL_MSG);
     } catch (StatementExecutionException e) {
+      logger.error(e.getMessage());
       if (e.getStatusCode() == 602) {
         throw new BaseException(
             ErrorCode.NO_PRI_DELETE_TIMESERIES, ErrorCode.NO_PRI_DELETE_TIMESERIES_MSG);
@@ -1239,7 +1246,8 @@ public class IotDBServiceImpl implements IotDBService {
   }
 
   @Override
-  public void saveGroupTtl(Connection connection, String groupName, long time) throws BaseException {
+  public void saveGroupTtl(Connection connection, String groupName, long time)
+      throws BaseException {
     SessionPool sessionPool = getSessionPool(connection);
     // SQL like: "set ttl to root.group1 600000"
     String sql = "set ttl to " + groupName + " " + time;
@@ -1414,6 +1422,7 @@ public class IotDBServiceImpl implements IotDBService {
     String sql = "show timeseries " + deviceName;
     List<String> measurements = executeQueryOneColumn(sessionPool, sql);
     if (measurements.size() > 0 && measurements.get(0).equals(deviceName)) {
+      logger.error(ErrorCode.MEASUREMENT_NAME_EQUALS_DEVICE_MSG);
       throw new BaseException(
           ErrorCode.MEASUREMENT_NAME_EQUALS_DEVICE, ErrorCode.MEASUREMENT_NAME_EQUALS_DEVICE_MSG);
     }
@@ -1423,6 +1432,7 @@ public class IotDBServiceImpl implements IotDBService {
     if (tags != null && tags.size() > 0) {
       for (List<String> tag : tags) {
         if (tag.size() != 2) {
+          logger.error(ErrorCode.WRONG_DB_PARAM_MSG);
           throw new BaseException(ErrorCode.WRONG_DB_PARAM, ErrorCode.WRONG_DB_PARAM_MSG);
         }
         String key = tag.get(0);
@@ -1437,6 +1447,7 @@ public class IotDBServiceImpl implements IotDBService {
     if (key != null) {
       checkValue(key);
       if (key.matches("^\\d+$")) {
+        logger.error(ErrorCode.NO_SUP_ALL_DIGIT_MSG);
         throw new BaseException(ErrorCode.NO_SUP_ALL_DIGIT, ErrorCode.NO_SUP_ALL_DIGIT_MSG);
       }
     }
@@ -1445,6 +1456,7 @@ public class IotDBServiceImpl implements IotDBService {
   private void checkValue(String value) throws BaseException {
     if (value != null) {
       if (value.matches("^as$") || value.matches("^null$") || value.matches("^like$")) {
+        logger.error(ErrorCode.NO_SUP_WORD_MSG);
         throw new BaseException(ErrorCode.NO_SUP_WORD, ErrorCode.NO_SUP_WORD_MSG);
       }
     }
@@ -1456,6 +1468,7 @@ public class IotDBServiceImpl implements IotDBService {
       return;
     }
     if (alias.matches("^as$") || alias.matches("^\\d+$") || alias.matches("^like$")) {
+      logger.error(ErrorCode.NO_SUP_ALIAS_WORD_MSG);
       throw new BaseException(ErrorCode.NO_SUP_ALIAS_WORD, ErrorCode.NO_SUP_ALIAS_WORD_MSG);
     }
     String existAlias = executeQueryOneLine(sessionPool, "show timeseries " + timeseries, "alias");
@@ -1714,7 +1727,7 @@ public class IotDBServiceImpl implements IotDBService {
     }
   }
 
-  //assemble tree depth-first recursively.
+  // assemble tree depth-first recursively.
   private void assembleDeviceList(NodeTreeVO node, String deviceName, SessionPool sessionPool)
       throws BaseException {
     List<String> descendants = findDescendants(deviceName, sessionPool);
@@ -1740,7 +1753,7 @@ public class IotDBServiceImpl implements IotDBService {
           tag++;
         }
       }
-      //If a descendant don't have elders between descendants, he must be child.
+      // If a descendant don't have elders between descendants, he must be child.
       if (tag == 0) {
         children.add(descendants.get(i));
       }
@@ -1793,6 +1806,7 @@ public class IotDBServiceImpl implements IotDBService {
       }
     }
     if (index == -1) {
+      logger.error(ErrorCode.SQL_EP_MSG);
       throw new BaseException(ErrorCode.SQL_EP, ErrorCode.SQL_EP_MSG);
     }
     List<List<String>> valueList = sqlResultVO.getValueList();
@@ -1822,11 +1836,12 @@ public class IotDBServiceImpl implements IotDBService {
       newMeasurementList.add(StringUtils.removeStart(measurement, deviceName + "."));
     }
 
-    //basic SQL like: "select s1,s2 from root.group1.dev1"
+    // basic SQL like: "select s1,s2 from root.group1.dev1"
     String basicSql = "select " + String.join(",", newMeasurementList) + " from " + deviceName;
     String whereClause = getWhereClause(dataQueryDTO);
     String limitClause = " limit " + pageSize + " offset " + (pageNum - 1) * pageSize;
-    // SQL like: "select s1,s2 from root.group1.dev1 where time >= 1 and time<=1000 limit 1 offset 10"
+    // SQL like: "select s1,s2 from root.group1.dev1 where time >= 1 and time<=1000 limit 1 offset
+    // 10"
     String sql = basicSql + whereClause + limitClause;
     try {
       sessionPool = getSessionPool(connection);
@@ -1914,8 +1929,7 @@ public class IotDBServiceImpl implements IotDBService {
     }
   }
 
-  private Integer getDataLineBySql(String sql, SessionPool sessionPool)
-      throws BaseException {
+  private Integer getDataLineBySql(String sql, SessionPool sessionPool) throws BaseException {
     SessionDataSetWrapper sessionDataSetWrapper = null;
     try {
       int lineCount = 0;
@@ -2112,6 +2126,7 @@ public class IotDBServiceImpl implements IotDBService {
           values.add(RandomStringUtils.randomAlphabetic(5));
           break;
         default:
+          logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
           throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
       }
     }
@@ -2219,6 +2234,7 @@ public class IotDBServiceImpl implements IotDBService {
           List<org.apache.iotdb.tsfile.read.common.Field> fields = next.getFields();
           valueList.add(fields.get(0).toString());
         } else {
+          logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
           throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
         }
       }
@@ -2321,6 +2337,7 @@ public class IotDBServiceImpl implements IotDBService {
       QUERY_STOP.put(notStopKey, false);
       return;
     }
+    logger.error(ErrorCode.NO_QUERY_MSG);
     throw new BaseException(ErrorCode.NO_QUERY, ErrorCode.NO_QUERY_MSG);
   }
 
@@ -2348,6 +2365,7 @@ public class IotDBServiceImpl implements IotDBService {
         grantOrRevokePaths(
             grantOrRevoke, userOrRole, name, privilege, timeseriesPaths, sessionPool);
       } else {
+        logger.error(ErrorCode.NO_TYPE_MSG);
         throw new BaseException(ErrorCode.NO_TYPE, ErrorCode.NO_TYPE_MSG);
       }
     }
@@ -2436,6 +2454,7 @@ public class IotDBServiceImpl implements IotDBService {
         }
       }
       if (index == -1) {
+        logger.error(ErrorCode.SQL_EP_MSG);
         throw new BaseException(ErrorCode.SQL_EP, ErrorCode.SQL_EP_MSG);
       }
       int batchSize = sessionDataSetWrapper.getBatchSize();
@@ -2740,6 +2759,7 @@ public class IotDBServiceImpl implements IotDBService {
           list.add(TSEncoding.GORILLA);
           break;
         default:
+          logger.error(ErrorCode.DB_ENCODING_WRONG_MSG);
           throw new BaseException(ErrorCode.DB_ENCODING_WRONG, ErrorCode.DB_ENCODING_WRONG_MSG);
       }
     }
@@ -2777,6 +2797,7 @@ public class IotDBServiceImpl implements IotDBService {
         tsEncoding = TSEncoding.GORILLA;
         break;
       default:
+        logger.error(ErrorCode.DB_ENCODING_WRONG_MSG);
         throw new BaseException(ErrorCode.DB_ENCODING_WRONG, ErrorCode.DB_ENCODING_WRONG_MSG);
     }
     return tsEncoding;
@@ -2812,6 +2833,7 @@ public class IotDBServiceImpl implements IotDBService {
           list.add(CompressionType.SDT);
           break;
         default:
+          logger.error(ErrorCode.DB_COMPRESSION_WRONG_MSG);
           throw new BaseException(
               ErrorCode.DB_COMPRESSION_WRONG, ErrorCode.DB_COMPRESSION_WRONG_MSG);
       }
@@ -2847,6 +2869,7 @@ public class IotDBServiceImpl implements IotDBService {
         compressionType = CompressionType.SDT;
         break;
       default:
+        logger.error(ErrorCode.DB_COMPRESSION_WRONG_MSG);
         throw new BaseException(ErrorCode.DB_COMPRESSION_WRONG, ErrorCode.DB_COMPRESSION_WRONG_MSG);
     }
     return compressionType;
@@ -2876,6 +2899,7 @@ public class IotDBServiceImpl implements IotDBService {
           tsDataType = TSDataType.TEXT;
           break;
         default:
+          logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
           throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
       }
       list.add(tsDataType);
@@ -2905,6 +2929,7 @@ public class IotDBServiceImpl implements IotDBService {
         tsDataType = TSDataType.TEXT;
         break;
       default:
+        logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
         throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
     }
     return tsDataType;
@@ -2919,6 +2944,7 @@ public class IotDBServiceImpl implements IotDBService {
     try {
       sessionPool = new SessionPool(host, port, username, password, 3);
     } catch (Exception e) {
+      logger.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_SESSION_FAIL, ErrorCode.GET_SESSION_FAIL_MSG);
     }
     return sessionPool;

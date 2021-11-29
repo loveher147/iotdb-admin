@@ -74,8 +74,10 @@ public class ExportCsv {
 
       return dumpResult(sql, session, zoneId);
     } catch (IoTDBConnectionException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_SESSION_FAIL, ErrorCode.GET_SESSION_FAIL_MSG);
     } catch (StatementExecutionException e) {
+      log.error(e.getMessage());
       throw new BaseException(
           ErrorCode.IMPORT_CSV_FAIL, ErrorCode.IMPORT_CSV_FAIL_MSG + e.getMessage());
     } finally {
@@ -83,6 +85,7 @@ public class ExportCsv {
         try {
           session.close();
         } catch (IoTDBConnectionException e) {
+          log.error(e.getMessage());
           throw new BaseException(ErrorCode.CLOSE_DBCONN_FAIL, ErrorCode.CLOSE_DBCONN_FAIL_MSG);
         }
       }
@@ -95,9 +98,11 @@ public class ExportCsv {
     File tf = new File(path);
     try {
       if (!tf.exists() && !tf.createNewFile()) {
+        log.error(ErrorCode.CREATE_FILE_FAIL_MSG);
         throw new BaseException(ErrorCode.CREATE_FILE_FAIL, ErrorCode.CREATE_FILE_FAIL_MSG);
       }
     } catch (IOException | BaseException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.CREATE_FILE_FAIL, ErrorCode.CREATE_FILE_FAIL_MSG);
     }
     log.info("Start exporting data from SQL statement:" + sql);
@@ -116,10 +121,13 @@ public class ExportCsv {
       log.info("Export " + line + " line data from SQL:" + sql + ". Time consuming:" + runTime);
       return fileName;
     } catch (IoTDBConnectionException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_SESSION_FAIL, ErrorCode.GET_SESSION_FAIL_MSG);
     } catch (IOException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.FILE_IO_FAIL, ErrorCode.FILE_IO_FAIL_MSG + e.getMessage());
     } catch (StatementExecutionException e) {
+      log.error(e.getMessage());
       throw new BaseException(
           ErrorCode.EXPORT_CSV_FAIL, ErrorCode.EXPORT_CSV_FAIL_MSG + e.getMessage());
     }

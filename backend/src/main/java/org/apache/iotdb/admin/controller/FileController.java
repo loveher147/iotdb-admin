@@ -32,6 +32,7 @@ import org.apache.iotdb.admin.tool.ImportCsv;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -43,6 +44,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Slf4j
 @RestController
 @Api(value = "File related")
 public class FileController {
@@ -63,6 +65,7 @@ public class FileController {
       throws BaseException {
     checkUser(request, serverId);
     if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
+      log.error(ErrorCode.FILE_NAME_ILLEGAL_MSG);
       throw new BaseException(ErrorCode.FILE_NAME_ILLEGAL, ErrorCode.FILE_NAME_ILLEGAL_MSG);
     }
     String fileName = "import" + System.currentTimeMillis() + ".csv";
@@ -110,6 +113,7 @@ public class FileController {
   public ResponseEntity<Resource> downloadTemplateFile() throws BaseException {
     Resource resource = new ClassPathResource("file/template.csv");
     if (!resource.exists()) {
+      log.error(ErrorCode.FILE_NOT_FOUND_MSG);
       throw new BaseException(ErrorCode.FILE_NOT_FOUND, ErrorCode.FILE_NOT_FOUND_MSG);
     }
     return getResponseEntity(resource);

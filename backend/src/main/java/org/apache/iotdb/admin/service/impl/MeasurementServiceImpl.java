@@ -53,6 +53,7 @@ public class MeasurementServiceImpl extends ServiceImpl<MeasurementMapper, Measu
     try {
       measurementMapper.delete(queryWrapper);
     } catch (Exception e) {
+      logger.error(e.getMessage());
       throw new BaseException(
           ErrorCode.DELETE_MEASUREMENT_INFO_FAIL, ErrorCode.DELETE_MEASUREMENT_INFO_FAIL_MSG);
     }
@@ -67,6 +68,7 @@ public class MeasurementServiceImpl extends ServiceImpl<MeasurementMapper, Measu
     try {
       measurementMapper.delete(queryWrapper);
     } catch (Exception e) {
+      logger.error(e.getMessage());
       throw new BaseException(
           ErrorCode.DELETE_MEASUREMENT_INFO_FAIL, ErrorCode.DELETE_MEASUREMENT_INFO_FAIL_MSG);
     }
@@ -87,6 +89,7 @@ public class MeasurementServiceImpl extends ServiceImpl<MeasurementMapper, Measu
       mea.setHost(host);
       int flag = measurementMapper.insert(mea);
       if (flag <= 0) {
+        logger.error(ErrorCode.SET_MEASUREMENT_INFO_FAIL_MSG);
         throw new BaseException(
             ErrorCode.SET_MEASUREMENT_INFO_FAIL, ErrorCode.SET_MEASUREMENT_INFO_FAIL_MSG);
       }
@@ -133,6 +136,7 @@ public class MeasurementServiceImpl extends ServiceImpl<MeasurementMapper, Measu
         mea.setHost(host);
         int flag = measurementMapper.insert(mea);
         if (flag <= 0) {
+          logger.error(ErrorCode.SET_MEASUREMENT_INFO_FAIL_MSG);
           throw new BaseException(
               ErrorCode.SET_MEASUREMENT_INFO_FAIL, ErrorCode.SET_MEASUREMENT_INFO_FAIL_MSG);
         }
@@ -142,6 +146,7 @@ public class MeasurementServiceImpl extends ServiceImpl<MeasurementMapper, Measu
       existMeasurement.setDescription(descriptions.get(i));
       int flag = measurementMapper.updateById(existMeasurement);
       if (flag <= 0) {
+        logger.error(ErrorCode.SET_MEASUREMENT_INFO_FAIL_MSG);
         throw new BaseException(
             ErrorCode.SET_MEASUREMENT_INFO_FAIL, ErrorCode.SET_MEASUREMENT_INFO_FAIL_MSG);
       }

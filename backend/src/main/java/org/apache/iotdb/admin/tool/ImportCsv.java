@@ -95,11 +95,14 @@ public class ImportCsv {
       if (file.isFile()) {
         return loadDataFromCSV(file, session);
       } else {
+        log.error(ErrorCode.UPLOAD_FILE_FAIL_MSG);
         throw new BaseException(ErrorCode.UPLOAD_FILE_FAIL, ErrorCode.UPLOAD_FILE_FAIL_MSG);
       }
     } catch (IoTDBConnectionException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.GET_SESSION_FAIL, ErrorCode.GET_SESSION_FAIL_MSG);
     } catch (StatementExecutionException e) {
+      log.error(e.getMessage());
       throw new BaseException(
           ErrorCode.IMPORT_CSV_FAIL, ErrorCode.IMPORT_CSV_FAIL_MSG + e.getMessage());
     } finally {
@@ -107,6 +110,7 @@ public class ImportCsv {
         try {
           session.close();
         } catch (IoTDBConnectionException e) {
+          log.error(e.getMessage());
           throw new BaseException(ErrorCode.CLOSE_DBCONN_FAIL, ErrorCode.CLOSE_DBCONN_FAIL_MSG);
         }
       }
@@ -126,11 +130,13 @@ public class ImportCsv {
       String header = br.readLine();
       String[] cols = splitCsvLine(header);
       if (cols.length <= 1) {
+        log.error(ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
         throw new BaseException(
             ErrorCode.FILE_FIRST_LINE_ILLEGAL, ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
       }
       for (int i = 1; i < cols.length; i++) {
         if (!cols[i].startsWith("root.") || StringUtils.countMatches(cols[i], ".") < 2) {
+          log.error(ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
           throw new BaseException(
               ErrorCode.FILE_FIRST_LINE_ILLEGAL, ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
         }
@@ -188,6 +194,7 @@ public class ImportCsv {
           try {
             session.insertRecords(devices, times, measurementsList, valuesList);
           } catch (StatementExecutionException e) {
+            log.error(e.getMessage());
             if (e.getMessage().contains("failed to insert measurements")) {
               insertErrorInfo.addAll(
                   Arrays.asList(
@@ -199,6 +206,7 @@ public class ImportCsv {
                   ErrorCode.IMPORT_CSV_FAIL, ErrorCode.IMPORT_CSV_FAIL_MSG + e.getMessage());
             }
           } catch (IoTDBConnectionException e) {
+            log.error(e.getMessage());
             throw new BaseException(ErrorCode.GET_SESSION_FAIL, ErrorCode.GET_SESSION_FAIL_MSG);
           }
           devices = new ArrayList<>();
@@ -212,6 +220,7 @@ public class ImportCsv {
           session.insertRecords(devices, times, measurementsList, valuesList);
         }
       } catch (StatementExecutionException e) {
+        log.error(e.getMessage());
         if (e.getMessage().contains("failed to insert measurements")) {
           insertErrorInfo.addAll(
               Arrays.asList(
@@ -222,6 +231,7 @@ public class ImportCsv {
               ErrorCode.IMPORT_CSV_FAIL, ErrorCode.IMPORT_CSV_FAIL_MSG + e.getMessage());
         }
       } catch (IoTDBConnectionException e) {
+        log.error(e.getMessage());
         throw new BaseException(ErrorCode.GET_SESSION_FAIL, ErrorCode.GET_SESSION_FAIL_MSG);
       }
 
@@ -236,10 +246,13 @@ public class ImportCsv {
       Integer totalCount = lineNumber * (cols.length - 1);
       return new ImportDataVO(totalCount, errorCount, fileDownloadUri);
     } catch (FileNotFoundException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.UPLOAD_FILE_FAIL, ErrorCode.UPLOAD_FILE_FAIL_MSG);
     } catch (IOException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.FILE_IO_FAIL, ErrorCode.FILE_IO_FAIL_MSG + e.getMessage());
     } catch (ArrayIndexOutOfBoundsException e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.FILE_FORMAT_ILLEGAL, ErrorCode.FILE_FORMAT_ILLEGAL_MSG);
     }
   }
@@ -253,6 +266,7 @@ public class ImportCsv {
         return Long.parseLong(str);
       }
     } catch (Exception e) {
+      log.error(e.getMessage());
       throw new BaseException(ErrorCode.FILE_TIME_ILLEGAL, ErrorCode.FILE_TIME_ILLEGAL_MSG);
     }
   }
@@ -299,6 +313,7 @@ public class ImportCsv {
               devicesToMeasurements,
               position);
         } else {
+          log.error(ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
           throw new BaseException(
               ErrorCode.FILE_FIRST_LINE_ILLEGAL, ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
         }
@@ -316,6 +331,7 @@ public class ImportCsv {
               position);
         }
       } else {
+        log.error(ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
         throw new BaseException(
             ErrorCode.FILE_FIRST_LINE_ILLEGAL, ErrorCode.FILE_FIRST_LINE_ILLEGAL_MSG);
       }
@@ -382,6 +398,7 @@ public class ImportCsv {
       startIndex = endIndex + 2;
       return new int[] {startIndex, i};
     } else {
+      log.error(ErrorCode.FILE_LINE_ILLEGAL_MSG + path);
       throw new BaseException(ErrorCode.FILE_LINE_ILLEGAL, ErrorCode.FILE_LINE_ILLEGAL_MSG + path);
     }
   }
