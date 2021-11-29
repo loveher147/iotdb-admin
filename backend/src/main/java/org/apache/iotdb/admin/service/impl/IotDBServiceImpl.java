@@ -135,6 +135,7 @@ public class IotDBServiceImpl implements IotDBService {
     }
   }
 
+  // assemble model tree depth-first recursively.
   private void assembleDataModel(DataModelVO node, String prefixPath, SessionPool sessionPool)
       throws BaseException {
     Set<String> childrenNode = getChildrenNode(prefixPath, sessionPool);
@@ -253,6 +254,7 @@ public class IotDBServiceImpl implements IotDBService {
 
   private String getLastValue(SessionPool sessionPool, String timeseries) throws BaseException {
     int index = timeseries.lastIndexOf(".");
+    // SQL like: "select last_value(s) from root.group1.dev1"
     String sql =
         "select last_value("
             + timeseries.substring(index + 1)
@@ -264,6 +266,7 @@ public class IotDBServiceImpl implements IotDBService {
 
   private Integer getOneDataCount(SessionPool sessionPool, String timeseries) throws BaseException {
     int index = timeseries.lastIndexOf(".");
+    // SQL like: "select count(*) from root.group1.dev1"
     String sql = "select count(*) from " + timeseries.substring(0, index);
     String countStr = executeQueryOneLine(sessionPool, sql, "count(" + timeseries + ")");
     return Integer.parseInt(countStr);
@@ -313,6 +316,7 @@ public class IotDBServiceImpl implements IotDBService {
     return groupNodeVOList;
   }
 
+  //assemble tree depth-first recursively.
   private void assembleNodeTree(
       NodeTreeVO node, String prefixPath, String type, SessionPool sessionPool)
       throws BaseException {
@@ -329,6 +333,7 @@ public class IotDBServiceImpl implements IotDBService {
 
   private Set<String> getChildrenNode(String prefixPath, String type, SessionPool sessionPool)
       throws BaseException {
+    // SQL like: "show storage group root" or "show devices root.group1"
     String sql = "show " + type + " " + prefixPath;
     List<String> children = executeQueryOneColumn(sessionPool, sql);
     if (children.size() == 0 || (children.size() == 1 && children.get(0).equals(prefixPath))) {
@@ -606,6 +611,7 @@ public class IotDBServiceImpl implements IotDBService {
     SessionPool sessionPool = getSessionPool(connection);
     String userName = iotDBUser.getUserName();
     String password = iotDBUser.getPassword();
+    // SQL like: "create user mike 'abc123'"
     String sql = "create user " + userName + " '" + password + "'";
     try {
       sessionPool.executeNonQueryStatement(sql);
@@ -902,13 +908,14 @@ public class IotDBServiceImpl implements IotDBService {
 
   private void upsertAuthorityPrivilege(
       SessionPool sessionPool,
-      String operationType,
+      String grantOrRevoke,
       String userOrRole,
       String name,
       String privilegesStr)
       throws BaseException {
+    // SQL like: "grant user mike privileges 'CREATE_USER' on root"
     String sql =
-        operationType
+        grantOrRevoke
             + " "
             + userOrRole
             + " "
@@ -1232,9 +1239,10 @@ public class IotDBServiceImpl implements IotDBService {
   }
 
   @Override
-  public void saveGroupTtl(Connection connection, String groupName, long l) throws BaseException {
+  public void saveGroupTtl(Connection connection, String groupName, long time) throws BaseException {
     SessionPool sessionPool = getSessionPool(connection);
-    String sql = "set ttl to " + groupName + " " + l;
+    // SQL like: "set ttl to root.group1 600000"
+    String sql = "set ttl to " + groupName + " " + time;
     try {
       sessionPool.executeNonQueryStatement(sql);
     } catch (StatementExecutionException e) {
@@ -1455,6 +1463,7 @@ public class IotDBServiceImpl implements IotDBService {
       return;
     }
     try {
+      // SQL like: "alter timeseries root.group1.dev1.s upsert alias=speed"
       String sql = "alter timeseries " + timeseries + " upsert alias=" + alias;
       sessionPool.executeNonQueryStatement(sql);
     } catch (StatementExecutionException e) {
@@ -1487,6 +1496,7 @@ public class IotDBServiceImpl implements IotDBService {
       }
 
       if (existTags != null) {
+        // SQL like: "alter timeseries root.group1.dev1.s drop tag1,tag2"
         String sql =
             "alter timeseries "
                 + deviceDTO.getTimeseries()
@@ -1496,6 +1506,7 @@ public class IotDBServiceImpl implements IotDBService {
       }
       if (newTags != null) {
         for (List<String> newTag : newTags) {
+          // SQL like: "alter timeseries root.group1.dev1.s add tags tag1=abc"
           String sql =
               "alter timeseries "
                   + deviceDTO.getTimeseries()
@@ -1537,6 +1548,7 @@ public class IotDBServiceImpl implements IotDBService {
       }
 
       if (existAttributes != null) {
+        // SQL like: "alter timeseries root.group1.dev1.s drop attr1,attr2"
         String sql =
             "alter timeseries "
                 + deviceDTO.getTimeseries()
@@ -1546,6 +1558,7 @@ public class IotDBServiceImpl implements IotDBService {
       }
       if (newAttributes != null) {
         for (List<String> newAttribute : newAttributes) {
+          // SQL like: "alter timeseries root.group1.dev1.s add attributes attr1=ab"
           String sql =
               "alter timeseries "
                   + deviceDTO.getTimeseries()
@@ -1592,6 +1605,7 @@ public class IotDBServiceImpl implements IotDBService {
       throws BaseException {
     SessionPool sessionPool = getSessionPool(connection);
     int index = timeseries.lastIndexOf(".");
+    // SQL like: "select last_value(s) from root.group1.dev1"
     String sql =
         "select last_value("
             + timeseries.substring(index + 1)
@@ -1700,6 +1714,7 @@ public class IotDBServiceImpl implements IotDBService {
     }
   }
 
+  //assemble tree depth-first recursively.
   private void assembleDeviceList(NodeTreeVO node, String deviceName, SessionPool sessionPool)
       throws BaseException {
     List<String> descendants = findDescendants(deviceName, sessionPool);
@@ -1725,6 +1740,7 @@ public class IotDBServiceImpl implements IotDBService {
           tag++;
         }
       }
+      //If a descendant don't have elders between descendants, he must be child.
       if (tag == 0) {
         children.add(descendants.get(i));
       }
@@ -1806,14 +1822,16 @@ public class IotDBServiceImpl implements IotDBService {
       newMeasurementList.add(StringUtils.removeStart(measurement, deviceName + "."));
     }
 
+    //basic SQL like: "select s1,s2 from root.group1.dev1"
     String basicSql = "select " + String.join(",", newMeasurementList) + " from " + deviceName;
     String whereClause = getWhereClause(dataQueryDTO);
     String limitClause = " limit " + pageSize + " offset " + (pageNum - 1) * pageSize;
+    // SQL like: "select s1,s2 from root.group1.dev1 where time >= 1 and time<=1000 limit 1 offset 10"
     String sql = basicSql + whereClause + limitClause;
     try {
       sessionPool = getSessionPool(connection);
       DataVO dataVO = getDataBySql(sql, sessionPool);
-      Integer totalLine = getDataLineBySql(basicSql + whereClause, deviceName, sessionPool);
+      Integer totalLine = getDataLineBySql(basicSql + whereClause, sessionPool);
       dataVO.setTotalCount(totalLine);
       int totalPage = (totalLine + pageSize - 1) / pageSize;
       dataVO.setTotalPage(totalPage);
@@ -1896,7 +1914,7 @@ public class IotDBServiceImpl implements IotDBService {
     }
   }
 
-  private Integer getDataLineBySql(String sql, String deviceName, SessionPool sessionPool)
+  private Integer getDataLineBySql(String sql, SessionPool sessionPool)
       throws BaseException {
     SessionDataSetWrapper sessionDataSetWrapper = null;
     try {
@@ -1964,6 +1982,7 @@ public class IotDBServiceImpl implements IotDBService {
       sessionPool = getSessionPool(connection);
       for (String measurement : measurementList) {
         for (String timestamp : timestampStrList) {
+          // SQL like: "delete from root.group1.dev1.s where time=1000"
           String sql = "delete from " + measurement + " where time=" + timestamp;
           sessionPool.executeNonQueryStatement(sql);
         }
@@ -2344,6 +2363,7 @@ public class IotDBServiceImpl implements IotDBService {
       throws BaseException {
     if (notNullAndNotZero(paths)) {
       for (String groupPath : paths) {
+        // SQL like: "grant user mike privileges 'CREATE_TIMESERIES' on root.group1"
         String sql =
             grantOrRevoke
                 + " "
@@ -2539,57 +2559,6 @@ public class IotDBServiceImpl implements IotDBService {
     }
     sqlResultVO.setValueList(valuelist);
     return sqlResultVO;
-  }
-
-  private <T> CountDTO executeQuery(
-      Class<T> clazz,
-      SessionPool sessionPool,
-      String sql,
-      Integer pageSize,
-      Integer pageNum,
-      String keyword)
-      throws BaseException {
-    SessionDataSetWrapper sessionDataSetWrapper = null;
-    try {
-      sessionDataSetWrapper = sessionPool.executeQueryStatement(sql);
-      List<T> results = new ArrayList<>();
-      int batchSize = sessionDataSetWrapper.getBatchSize();
-      int count = 0;
-      if (batchSize > 0) {
-        while (sessionDataSetWrapper.hasNext()) {
-          RowRecord rowRecord = sessionDataSetWrapper.next();
-          count++;
-          if (count >= pageSize * (pageNum - 1) + 1 && count <= pageSize * pageNum) {
-            T t = clazz.newInstance();
-            List<org.apache.iotdb.tsfile.read.common.Field> fields = rowRecord.getFields();
-            List<String> columnNames = sessionDataSetWrapper.getColumnNames();
-            for (int i = 0; i < fields.size(); i++) {
-              Field field = clazz.getDeclaredField(columnNames.get(i).replaceAll(" ", ""));
-              field.setAccessible(true);
-              field.set(t, fields.get(i).toString());
-            }
-            results.add(t);
-          }
-        }
-      }
-      CountDTO countDTO = new CountDTO();
-      countDTO.setObjects(results);
-      countDTO.setTotalCount(count);
-      Integer totalPage = count % pageSize == 0 ? count / pageSize : count / pageSize + 1;
-      countDTO.setTotalPage(totalPage);
-      return countDTO;
-    } catch (IoTDBConnectionException e) {
-      logger.error(e.getMessage());
-      throw new BaseException(ErrorCode.GET_MSM_FAIL, ErrorCode.GET_MSM_FAIL_MSG);
-    } catch (StatementExecutionException e) {
-      logger.error(e.getMessage());
-      throw new BaseException(ErrorCode.GET_MSM_FAIL, ErrorCode.GET_MSM_FAIL_MSG);
-    } catch (Exception e) {
-      logger.error(e.getMessage());
-      throw new BaseException(ErrorCode.GET_MSM_FAIL, ErrorCode.GET_MSM_FAIL_MSG);
-    } finally {
-      closeResultSet(sessionDataSetWrapper);
-    }
   }
 
   private String executeQueryOneValue(SessionPool sessionPool, String sql) throws BaseException {
