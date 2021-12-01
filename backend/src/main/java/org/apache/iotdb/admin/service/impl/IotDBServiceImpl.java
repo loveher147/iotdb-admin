@@ -61,6 +61,12 @@ public class IotDBServiceImpl implements IotDBService {
 
   private static final HashMap<String, Boolean> QUERY_STOP = new HashMap<>();
 
+  private static final Map<String, TSEncoding> ENCODE = new HashMap<>();
+
+  private static final Map<String, CompressionType> COMPRESSION = new HashMap<>();
+
+  private static final Map<String, TSDataType> DATA_TYPE = new HashMap<>();
+
   static {
     AUTHORITY_PRIVILEGES.add("CREATE_USER");
     AUTHORITY_PRIVILEGES.add("DELETE_USER");
@@ -89,6 +95,38 @@ public class IotDBServiceImpl implements IotDBService {
     DATA_PRIVILEGES.add("INSERT_TIMESERIES");
     DATA_PRIVILEGES.add("READ_TIMESERIES");
     DATA_PRIVILEGES.add("DELETE_TIMESERIES");
+  }
+
+  static {
+    ENCODE.put("PLAIN", TSEncoding.PLAIN);
+    ENCODE.put("PLAIN_DICTIONARY", TSEncoding.PLAIN_DICTIONARY);
+    ENCODE.put("RLE", TSEncoding.RLE);
+    ENCODE.put("DIFF", TSEncoding.DIFF);
+    ENCODE.put("TS_2DIFF", TSEncoding.TS_2DIFF);
+    ENCODE.put("BITMAP", TSEncoding.BITMAP);
+    ENCODE.put("GORILLA_V1", TSEncoding.GORILLA_V1);
+    ENCODE.put("REGULAR", TSEncoding.REGULAR);
+    ENCODE.put("GORILLA", TSEncoding.GORILLA);
+  }
+
+  static {
+    COMPRESSION.put("UNCOMPRESSED", CompressionType.UNCOMPRESSED);
+    COMPRESSION.put("SNAPPY", CompressionType.SNAPPY);
+    COMPRESSION.put("GZIP", CompressionType.GZIP);
+    COMPRESSION.put("LZ4", CompressionType.LZ4);
+    COMPRESSION.put("LZO", CompressionType.LZO);
+    COMPRESSION.put("PLA", CompressionType.PLA);
+    COMPRESSION.put("PAA", CompressionType.PAA);
+    COMPRESSION.put("SDT", CompressionType.SDT);
+  }
+
+  static {
+    DATA_TYPE.put("BOOLEAN", TSDataType.BOOLEAN);
+    DATA_TYPE.put("INT32", TSDataType.INT32);
+    DATA_TYPE.put("INT64", TSDataType.INT64);
+    DATA_TYPE.put("FLOAT", TSDataType.FLOAT);
+    DATA_TYPE.put("DOUBLE", TSDataType.DOUBLE);
+    DATA_TYPE.put("TEXT", TSDataType.TEXT);
   }
 
   @Override
@@ -2172,29 +2210,15 @@ public class IotDBServiceImpl implements IotDBService {
     List<String> delDevicePaths = privilegeInfoDTO.getDelDevicePaths();
     List<String> delGroupPaths = privilegeInfoDTO.getDelGroupPaths();
     List<String> delTimeseriesPaths = privilegeInfoDTO.getDelTimeseriesPaths();
-    switch (type) {
-      case 1:
-        if (notNullAndNotZero(delGroupPaths)) {
-          for (String privilege : DATA_PRIVILEGES) {
-            grantOrRevokePaths("revoke", userOrRole, name, privilege, delGroupPaths, sessionPool);
-          }
-        }
-        break;
-      case 2:
-        if (notNullAndNotZero(delDevicePaths)) {
-          for (String privilege : DATA_PRIVILEGES) {
-            grantOrRevokePaths("revoke", userOrRole, name, privilege, delDevicePaths, sessionPool);
-          }
-        }
-        break;
-      case 3:
-        if (notNullAndNotZero(delTimeseriesPaths)) {
-          for (String privilege : DATA_PRIVILEGES) {
-            grantOrRevokePaths(
-                "revoke", userOrRole, name, privilege, delTimeseriesPaths, sessionPool);
-          }
-        }
-        break;
+    // Replace switch statement with HashMap
+    Map<Integer, List<String>> hashMap = new HashMap<Integer, List<String>>();
+    hashMap.put(1, delGroupPaths);
+    hashMap.put(2, delDevicePaths);
+    hashMap.put(3, delTimeseriesPaths);
+    if (notNullAndNotZero(hashMap.get(type))) {
+      for (String privilege : DATA_PRIVILEGES) {
+        grantOrRevokePaths("revoke", userOrRole, name, privilege, hashMap.get(type), sessionPool);
+      }
     }
   }
 
@@ -2729,38 +2753,13 @@ public class IotDBServiceImpl implements IotDBService {
 
   private List<TSEncoding> handleEncodingStr(List<String> encoding) throws BaseException {
     List<TSEncoding> list = new ArrayList<>();
+    // Replace switch statement with HashMap
     for (String s : encoding) {
-      switch (s) {
-        case "PLAIN":
-          list.add(TSEncoding.PLAIN);
-          break;
-        case "PLAIN_DICTIONARY":
-          list.add(TSEncoding.PLAIN_DICTIONARY);
-          break;
-        case "RLE":
-          list.add(TSEncoding.RLE);
-          break;
-        case "DIFF":
-          list.add(TSEncoding.DIFF);
-          break;
-        case "TS_2DIFF":
-          list.add(TSEncoding.TS_2DIFF);
-          break;
-        case "BITMAP":
-          list.add(TSEncoding.BITMAP);
-          break;
-        case "GORILLA_V1":
-          list.add(TSEncoding.GORILLA_V1);
-          break;
-        case "REGULAR":
-          list.add(TSEncoding.REGULAR);
-          break;
-        case "GORILLA":
-          list.add(TSEncoding.GORILLA);
-          break;
-        default:
-          logger.error(ErrorCode.DB_ENCODING_WRONG_MSG);
-          throw new BaseException(ErrorCode.DB_ENCODING_WRONG, ErrorCode.DB_ENCODING_WRONG_MSG);
+      if (ENCODE.containsKey(s)) {
+        list.add(ENCODE.get(s));
+      } else {
+        logger.error(ErrorCode.DB_ENCODING_WRONG_MSG);
+        throw new BaseException(ErrorCode.DB_ENCODING_WRONG, ErrorCode.DB_ENCODING_WRONG_MSG);
       }
     }
     return list;
@@ -2768,37 +2767,12 @@ public class IotDBServiceImpl implements IotDBService {
 
   private TSEncoding handleEncodingStr(String encoding) throws BaseException {
     TSEncoding tsEncoding;
-    switch (encoding) {
-      case "PLAIN":
-        tsEncoding = TSEncoding.PLAIN;
-        break;
-      case "PLAIN_DICTIONARY":
-        tsEncoding = TSEncoding.PLAIN_DICTIONARY;
-        break;
-      case "RLE":
-        tsEncoding = TSEncoding.RLE;
-        break;
-      case "DIFF":
-        tsEncoding = TSEncoding.DIFF;
-        break;
-      case "TS_2DIFF":
-        tsEncoding = TSEncoding.TS_2DIFF;
-        break;
-      case "BITMAP":
-        tsEncoding = TSEncoding.BITMAP;
-        break;
-      case "GORILLA_V1":
-        tsEncoding = TSEncoding.GORILLA_V1;
-        break;
-      case "REGULAR":
-        tsEncoding = TSEncoding.REGULAR;
-        break;
-      case "GORILLA":
-        tsEncoding = TSEncoding.GORILLA;
-        break;
-      default:
-        logger.error(ErrorCode.DB_ENCODING_WRONG_MSG);
-        throw new BaseException(ErrorCode.DB_ENCODING_WRONG, ErrorCode.DB_ENCODING_WRONG_MSG);
+    // Replace switch statement with HashMap
+    if (ENCODE.containsKey(encoding)) {
+      tsEncoding = ENCODE.get(encoding);
+    } else {
+      logger.error(ErrorCode.DB_ENCODING_WRONG_MSG);
+      throw new BaseException(ErrorCode.DB_ENCODING_WRONG, ErrorCode.DB_ENCODING_WRONG_MSG);
     }
     return tsEncoding;
   }
@@ -2806,36 +2780,13 @@ public class IotDBServiceImpl implements IotDBService {
   private List<CompressionType> handleCompressionStr(List<String> compression)
       throws BaseException {
     List<CompressionType> list = new ArrayList<>();
+    // Replace switch statement with HashMap
     for (String s : compression) {
-      switch (s) {
-        case "UNCOMPRESSED":
-          list.add(CompressionType.UNCOMPRESSED);
-          break;
-        case "SNAPPY":
-          list.add(CompressionType.SNAPPY);
-          break;
-        case "GZIP":
-          list.add(CompressionType.GZIP);
-          break;
-        case "LZ4":
-          list.add(CompressionType.LZ4);
-          break;
-        case "LZO":
-          list.add(CompressionType.LZO);
-          break;
-        case "PLA":
-          list.add(CompressionType.PLA);
-          break;
-        case "PAA":
-          list.add(CompressionType.PAA);
-          break;
-        case "SDT":
-          list.add(CompressionType.SDT);
-          break;
-        default:
-          logger.error(ErrorCode.DB_COMPRESSION_WRONG_MSG);
-          throw new BaseException(
-              ErrorCode.DB_COMPRESSION_WRONG, ErrorCode.DB_COMPRESSION_WRONG_MSG);
+      if (COMPRESSION.containsKey(s)) {
+        list.add(COMPRESSION.get(s));
+      } else {
+        logger.error(ErrorCode.DB_COMPRESSION_WRONG_MSG);
+        throw new BaseException(ErrorCode.DB_COMPRESSION_WRONG, ErrorCode.DB_COMPRESSION_WRONG_MSG);
       }
     }
     return list;
@@ -2843,64 +2794,26 @@ public class IotDBServiceImpl implements IotDBService {
 
   private CompressionType handleCompressionStr(String compression) throws BaseException {
     CompressionType compressionType;
-    switch (compression) {
-      case "UNCOMPRESSED":
-        compressionType = CompressionType.UNCOMPRESSED;
-        break;
-      case "SNAPPY":
-        compressionType = CompressionType.SNAPPY;
-        break;
-      case "GZIP":
-        compressionType = CompressionType.GZIP;
-        break;
-      case "LZ4":
-        compressionType = CompressionType.LZ4;
-        break;
-      case "LZO":
-        compressionType = CompressionType.LZO;
-        break;
-      case "PLA":
-        compressionType = CompressionType.PLA;
-        break;
-      case "PAA":
-        compressionType = CompressionType.PAA;
-        break;
-      case "SDT":
-        compressionType = CompressionType.SDT;
-        break;
-      default:
-        logger.error(ErrorCode.DB_COMPRESSION_WRONG_MSG);
-        throw new BaseException(ErrorCode.DB_COMPRESSION_WRONG, ErrorCode.DB_COMPRESSION_WRONG_MSG);
+    // Replace switch statement with HashMap
+    if (COMPRESSION.containsKey(compression)) {
+      compressionType = COMPRESSION.get(compression);
+    } else {
+      logger.error(ErrorCode.DB_COMPRESSION_WRONG_MSG);
+      throw new BaseException(ErrorCode.DB_COMPRESSION_WRONG, ErrorCode.DB_COMPRESSION_WRONG_MSG);
     }
     return compressionType;
   }
 
   private List<TSDataType> handleTypeStr(List<String> types) throws BaseException {
     List<TSDataType> list = new ArrayList<>();
+    // Replace switch statement with HashMap
     for (String type : types) {
       TSDataType tsDataType;
-      switch (type) {
-        case "BOOLEAN":
-          tsDataType = TSDataType.BOOLEAN;
-          break;
-        case "INT32":
-          tsDataType = TSDataType.INT32;
-          break;
-        case "INT64":
-          tsDataType = TSDataType.INT64;
-          break;
-        case "FLOAT":
-          tsDataType = TSDataType.FLOAT;
-          break;
-        case "DOUBLE":
-          tsDataType = TSDataType.DOUBLE;
-          break;
-        case "TEXT":
-          tsDataType = TSDataType.TEXT;
-          break;
-        default:
-          logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
-          throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
+      if (DATA_TYPE.containsKey(type)) {
+        tsDataType = DATA_TYPE.get(type);
+      } else {
+        logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
+        throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
       }
       list.add(tsDataType);
     }
@@ -2909,28 +2822,12 @@ public class IotDBServiceImpl implements IotDBService {
 
   private TSDataType handleTypeStr(String type) throws BaseException {
     TSDataType tsDataType;
-    switch (type) {
-      case "BOOLEAN":
-        tsDataType = TSDataType.BOOLEAN;
-        break;
-      case "INT32":
-        tsDataType = TSDataType.INT32;
-        break;
-      case "INT64":
-        tsDataType = TSDataType.INT64;
-        break;
-      case "FLOAT":
-        tsDataType = TSDataType.FLOAT;
-        break;
-      case "DOUBLE":
-        tsDataType = TSDataType.DOUBLE;
-        break;
-      case "TEXT":
-        tsDataType = TSDataType.TEXT;
-        break;
-      default:
-        logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
-        throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
+    // Replace switch statement with HashMap
+    if (DATA_TYPE.containsKey(type)) {
+      tsDataType = DATA_TYPE.get(type);
+    } else {
+      logger.error(ErrorCode.DB_DATATYPE_WRONG_MSG);
+      throw new BaseException(ErrorCode.DB_DATATYPE_WRONG, ErrorCode.DB_DATATYPE_WRONG_MSG);
     }
     return tsDataType;
   }
