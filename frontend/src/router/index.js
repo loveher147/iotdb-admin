@@ -98,6 +98,23 @@ const routes = [
           },
         ],
       },
+      {
+        path: '/control',
+        name: 'Control',
+        component: () => import(/* webpackChunkName: "control" */ '../views/Control'),
+        children: [
+          {
+            path: 'indicator',
+            name: 'Indicator',
+            component: () => import(/* webpackChunkName: "Indicator" */ '../views/Control/components/indicator.vue'),
+          },
+          {
+            path: 'query',
+            name: 'Query',
+            component: () => import(/* webpackChunkName: "Query" */ '../views/Control/components/query.vue'),
+          },
+        ],
+      },
     ],
   },
   {
@@ -110,6 +127,11 @@ const routes = [
     name: 'About',
     component: () => import(/* webpackChunkName: "about" */ '../views/About'),
   },
+  // {
+  //   path: '/Control',
+  //   name: 'Control',
+  //   component: () => import(/* webpackChunkName: "control" */ '../views/Control'),
+  // },
 ];
 
 const router = createRouter({
